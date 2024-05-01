@@ -3,14 +3,11 @@ package usecase
 import (
 	"ToDo/config"
 	"ToDo/domain"
+	"ToDo/packages/auth"
 	"ToDo/packages/context"
-	"ToDo/packages/errors"
 	"ToDo/resource/request"
 	"ToDo/resource/response"
-	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"strconv"
-	"time"
 )
 
 type UserInputPort interface {
@@ -73,40 +70,23 @@ func (u user) GetByID(ctx context.Context, id uint) error {
 	return u.outputPort.GetByID(res)
 }
 
-func issueJwtToken(userID, userName, realm, secret string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"uid":       userID,
-		"user_name": userName,
-		"exp":       time.Now().Add(time.Hour * 24).Unix(),
-		"realm":     realm,
-	})
-
-	tokenString, err := token.SignedString([]byte(secret))
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
-}
-
 func (u user) Login(ctx context.Context, req *request.UserLogin) error {
 	user, err := u.userRepo.GetByUserName(ctx, req.UserName)
 	if err != nil {
 		return err
 	}
 
-	if user.Password.IsValid(req.Password) {
-		token, err := issueJwtToken(strconv.Itoa(int(user.ID)), user.UserName, "user", config.Env.App.Secret)
-		if err != nil {
-			return errors.NewUnexpected(err)
-		}
-
-		var res response.UserLogin
-		res.Token = token
-
-		return u.outputPort.Login(req.Session, &res)
-	} else {
-		fmt.Println("Invalid password")
+	if !user.Password.IsValid(req.Password) {
+		ctx.FieldError("Password", "パスワードが違います")
 	}
-	return u.outputPort.Login(req.Session, nil)
+
+	tokenService := auth.NewJwtTokenService(config.Env.App.Secret)
+	token, err := tokenService.IssueJWT(strconv.Itoa(int(user.ID)), user.UserName, "user")
+	if err != nil {
+		return err
+	}
+	var res response.UserLogin
+	res.Token = token
+
+	return u.outputPort.Login(true, &res)
 }
