@@ -1,9 +1,8 @@
 package router
 
 import (
-	"example.com/m/packages/context"
-	"example.com/m/packages/errors"
-
+	"ToDo/packages/context"
+	"ToDo/packages/errors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

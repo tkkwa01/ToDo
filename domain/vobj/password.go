@@ -2,7 +2,6 @@ package vobj
 
 import (
 	"ToDo/config"
-	"ToDo/packages/context"
 	"ToDo/packages/errors"
 	"database/sql"
 	"database/sql/driver"
@@ -13,12 +12,7 @@ import (
 
 type Password string
 
-func NewPassword(ctx context.Context, password, passwordConfirm string) (*Password, error) {
-	if password != passwordConfirm {
-		ctx.FieldError("PasswordConfirm", "パスワードと一致しません")
-		return nil, nil
-	}
-
+func NewPassword(password string) (*Password, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), config.BcryptHashCost)
 	if err != nil {
 		return nil, errors.NewUnexpected(err)

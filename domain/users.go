@@ -19,7 +19,7 @@ func NewUser(ctx context.Context, dto *request.CreateUser) (*User, error) {
 
 	ctx.Validate(user)
 
-	password, err := vobj.NewPassword(ctx, dto.Password, dto.PasswordConfirm)
+	password, err := vobj.NewPassword(dto.Password)
 	if err != nil {
 		return nil, err
 	}

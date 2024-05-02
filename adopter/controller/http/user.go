@@ -23,6 +23,7 @@ func NewUser(r *router.Router, inputFactory usecase.UserInputFactory, outputFact
 	}
 
 	r.Group("user", nil, func(r *router.Router) {
+		r.Post("signup", handler.Signup)
 		r.Post("login", handler.Login)
 	})
 
@@ -31,6 +32,19 @@ func NewUser(r *router.Router, inputFactory usecase.UserInputFactory, outputFact
 			r.Get("me", handler.GetMe)
 		})
 	})
+}
+
+func (u user) Signup(ctx context.Context, c *gin.Context) error {
+	var req request.CreateUser
+
+	if !bind(c, &req) {
+		return nil
+	}
+
+	outputPort := u.outputFactory(c)
+	inputPort := u.inputFactory(outputPort)
+
+	return inputPort.Create(ctx, &req)
 }
 
 func (u user) Login(ctx context.Context, c *gin.Context) error {
