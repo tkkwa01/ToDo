@@ -9,7 +9,7 @@ import (
 func Init() {
 	err := driver.GetRDB().AutoMigrate(
 		&domain.User{},
-		//&domain.Article{},
+		&domain.Task{},
 	)
 	if err != nil {
 		fmt.Println(err)

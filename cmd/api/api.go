@@ -40,13 +40,17 @@ func Execute() {
 
 	//mysql
 	userRepository := mysqlRepository.NewUserRepository()
+	taskRepository := mysqlRepository.NewTaskRepository()
 
 	//usecase
 	userInputFactory := userUsecase.NewUserInputFactory(userRepository)
 	userOutputFactory := userPresenter.NewUserOutputFactory()
+	taskInputFactory := userUsecase.NewTaskInputFactory(taskRepository)
+	taskOutputFactory := userPresenter.NewTaskOutputFactory()
 
 	//controller
 	httpController.NewUser(r, userInputFactory, userOutputFactory)
+	httpController.NewTask(r, taskInputFactory, taskOutputFactory)
 
 	//serve
 	srv := &http.Server{
